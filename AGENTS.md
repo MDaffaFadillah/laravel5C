@@ -1,47 +1,107 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# AGENTS.md — Lapangin
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+Dokumen ini dibaca sebelum mengerjakan apa pun di repository ini. Baca seluruhnya.
 
-## Prerequisites
+## 0. Status Fase
+Fase aktif: setup repository dan dokumentasi. Belum ada kode aplikasi.
+Jangan membuat migration, model, controller, route, atau view sebelum pemilik project memberi instruksi fase berikutnya.
 
-Verify that PHP and Composer are available:
+## 1. Tujuan
+Lapangin adalah aplikasi web booking lapangan olahraga (futsal dan badminton). Customer mencari venue, memilih lapangan dan jadwal, lalu membayar online lewat payment gateway atau di lokasi. Admin mengelola venue, lapangan, booking, dan pembayaran.
+Ini tugas akhir mata kuliah PBO2, dengan fokus relasi tabel database dan Eloquent ORM.
 
-```sh
-php -v
-composer -V
-```
+## 2. Stack
+- Laravel (versi di `composer.json`: `laravel/framework ^13.17`, PHP `^8.3`)
+- Autentikasi: Laravel Breeze, dengan middleware role
+- Otorisasi: Policy (customer hanya bisa mengakses booking miliknya)
+- Validasi: Form Request
+- Logika bisnis: Service class, controller tipis
+- Frontend: Blade + Tailwind CSS. Livewire belum diputuskan.
+- Pembayaran: payment gateway (Midtrans atau Xendit, belum diputuskan). Metode: QRIS, VA, e-wallet.
+- Queue dan scheduler: webhook, auto-cancel, auto-complete, rekonsiliasi
+- Database: sesuai `.env` (default `.env.example`: sqlite)
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
+## 3. Peran
+- `customer`: cari venue, booking, bayar, lihat riwayat, batalkan, beri review
+- `admin`: kelola venue dan court, kelola booking, catat pembayaran di lokasi, verifikasi pembayaran, moderasi review, kelola user, lihat laporan
+Publik (tanpa login): lihat daftar dan detail venue, registrasi, login.
 
-macOS:
+## 4. Keputusan Desain (sudah final)
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
+a. Status jadwal dan status uang dipisah.
+- `bookings.status`: `pending`, `confirmed`, `cancelled`, `completed`
+- `bookings.payment_status`: `unpaid`, `partially_paid`, `paid`, `refunded`
+- Jangan digabung dalam satu kolom.
 
-Windows PowerShell:
+b. `payments` adalah one-to-many terhadap `bookings`. Jangan pasang unique pada `payments.booking_id`.
+- `payment_type`: `dp`, `full`, `remaining`
+- `channel`: `online`, `onsite`
+- `payment_method`: `qris`, `va`, `ewallet`, `cash_onsite`, `transfer_onsite`
+- `status`: `pending`, `paid`, `failed`, `expired`, `refunded`
+- Kolom gateway: `gateway`, `gateway_order_id`, `gateway_transaction_id`, `gateway_payload` (JSON, jejak audit), `expired_at`
+- `payment_code` dibuat otomatis. Formatnya belum diputuskan.
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
+c. Opsi pembayaran per booking: `bookings.payment_option` = `full_online`, `dp`, `onsite`.
+- Kolom turunan: `dp_amount`, `paid_amount`, `remaining_amount`.
+- Sumber kebenaran: `total_price` dikurangi total pembayaran berstatus `paid`.
 
-Linux:
+d. Pengaturan per venue (kolom di `venues`):
+- `allow_full_online`, `allow_dp`, `allow_onsite` (boolean)
+- `dp_type` (persen atau nominal), `dp_value`
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
+e. Snapshot harga: `bookings.price_per_hour` disalin dari `courts.price_per_hour` saat booking dibuat. `total_price = price_per_hour × duration`. Perubahan harga court tidak mengubah booking lama.
 
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
+f. Anti double-booking:
+- Bentrok jika `start_time < end_time_lama` AND `end_time > start_time_lama`, untuk court dan tanggal yang sama, hanya pada booking `pending` atau `confirmed`.
+- Cek dan buat booking dalam `DB::transaction()` dengan row locking.
 
-## Agent Setup
+g. Keamanan pembayaran:
+- Nominal selalu dihitung ulang di server dari database. Nilai dari browser tidak dipercaya.
+- Status booking hanya berubah lewat webhook gateway yang signature-nya sudah diverifikasi, bukan dari redirect.
+- Webhook idempotent: notifikasi yang sama dua kali tidak menggandakan pembayaran. Proses lewat queue.
 
-Install Laravel Boost from the application root before making application changes:
+h. Aturan waktu:
+- Slot ditahan 15 menit untuk pembayaran online. Lewat itu, booking dibatalkan otomatis.
+- Booking harus di dalam jam buka venue, tidak di masa lalu, dan court berstatus `available`.
+- Review hanya untuk booking `completed`, satu kali per booking.
 
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
+i. Kode otomatis:
+- `booking_code` format `BK-YYYYMMDD-NNNN`, contoh `BK-20261103-0001`.
 
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+j. Cascade:
+- Hapus venue dibatasi selama masih ada court.
+- Hapus court dibatasi selama masih ada booking.
+- Hapus booking ikut menghapus review dan status history. Payment tidak ikut dihapus.
+
+## 5. Hal yang Belum Diputuskan (jangan diputuskan sendiri)
+1. Gateway: Midtrans atau Xendit
+2. Nilai DP default dan apakah bisa diubah per venue
+3. Booking bayar penuh di lokasi tanpa DP: langsung `confirmed` atau harus disetujui admin
+4. Kebijakan pembatalan dan refund DP
+5. Biaya gateway: ditanggung venue atau customer
+6. Livewire atau Blade murni untuk halaman jadwal
+7. Format `payment_code`
+8. Bukti transfer, foto venue dan court, alasan pembatalan, jadwal khusus, fasilitas venue. Belum masuk database, jangan ditambahkan tanpa persetujuan.
+
+Jika ada keputusan dari pemilik project, pindahkan ke bagian 4 dan hapus dari daftar ini.
+
+## 6. Cakupan Fase 1
+Boleh: setup Breeze dan middleware role, migration dan model sesuai bagian 4, CRUD venue dan court (admin), daftar dan detail venue (publik), booking dengan pencegahan bentrok, integrasi gateway satu metode (QRIS), webhook terverifikasi dan idempotent, auto-cancel, pembayaran onsite yang dicatat admin, riwayat booking customer.
+Tidak boleh (di luar fase 1): DP penuh, refund, rekonsiliasi, notifikasi email atau WhatsApp, dashboard admin, review, laporan dan ekspor, upload foto, booking manual admin, moderasi review, kelola user (kecuali yang dibutuhkan auth).
+
+## 7. Aturan Kerja
+- Sebelum coding, baca `composer.json`, `.env.example`, `routes/`, dan migration yang ada. Jangan mengasumsikan isi file yang belum dibaca.
+- Kerjakan per langkah kecil, satu fitur per iterasi. Setelah tiap langkah, sebutkan file yang berubah dan alasannya.
+- Jangan menambah fitur, kolom, atau tabel di luar dokumen ini tanpa bertanya.
+- Tulis test untuk bentrok jadwal, perhitungan harga, dan validasi webhook.
+- Kredensial gateway hanya di `.env`, jangan di kode.
+- Jangan menyalin kode dari repository lain, termasuk milik teman.
+- Perubahan `AGENTS.md` ditampilkan sebagai diff dan menunggu persetujuan.
+- Git: kerja di `feature/lapangin`. Format commit `docs:`, `feat:`, `fix:`, `refactor:`, `test:`, `chore:`. Jangan push ke `main`. Jangan `reset --hard` atau `push --force` tanpa konfirmasi.
+- Komunikasi dengan pemilik project dalam Bahasa Indonesia.
+
+## 8. Verifikasi Pemahaman
+Sebelum mulai kerja di sesi baru, jawab:
+1. Apa fase aktif dan apa yang belum boleh dikerjakan?
+2. Apa beda `bookings.status` dan `bookings.payment_status`?
+3. Kenapa `payments` one-to-many, dan bagaimana webhook ganda dicegah?
