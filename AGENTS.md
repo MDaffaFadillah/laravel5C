@@ -3,8 +3,8 @@
 Dokumen ini dibaca sebelum mengerjakan apa pun di repository ini. Baca seluruhnya.
 
 ## 0. Status Fase
-Fase aktif: setup repository dan dokumentasi. Belum ada kode aplikasi.
-Jangan membuat migration, model, controller, route, atau view sebelum pemilik project memberi instruksi fase berikutnya.
+Fase 1 sedang berjalan: setup auth dan role. Kode aplikasi hanya untuk cakupan fase 1.
+Lihat bagian 6 untuk daftar fitur yang boleh dan tidak boleh dikerjakan di fase ini.
 
 ## 1. Tujuan
 Lapangin adalah aplikasi web booking lapangan olahraga (futsal dan badminton). Customer mencari venue, memilih lapangan dan jadwal, lalu membayar online lewat payment gateway atau di lokasi. Admin mengelola venue, lapangan, booking, dan pembayaran.
