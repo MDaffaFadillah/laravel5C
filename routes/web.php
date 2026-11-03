@@ -3,11 +3,15 @@
 use App\Http\Controllers\Admin\CourtController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicVenueController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/venues', [PublicVenueController::class, 'index'])->name('venues.index');
+Route::get('/venues/{venue}', [PublicVenueController::class, 'show'])->name('venues.show');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
