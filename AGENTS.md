@@ -41,10 +41,6 @@ b. `payments` adalah one-to-many terhadap `bookings`. Jangan pasang unique pada 
 - Kolom gateway: `gateway`, `gateway_order_id`, `gateway_transaction_id`, `gateway_payload` (JSON, jejak audit), `expired_at`
 - `payment_code` dibuat otomatis. Formatnya belum diputuskan.
 
-k. Gateway: Midtrans.
-l. Default pembayaran venue: `allow_full_online = true`, `allow_dp = false`, `allow_onsite = false`, `dp_type = percent`, `dp_value = 30`.
-m. Booking bayar penuh di lokasi tanpa DP: status langsung `confirmed`, tanpa persetujuan admin.
-
 c. Opsi pembayaran per booking: `bookings.payment_option` = `full_online`, `dp`, `onsite`.
 - Kolom turunan: `dp_amount`, `paid_amount`, `remaining_amount`.
 - Sumber kebenaran: `total_price` dikurangi total pembayaran berstatus `paid`.
@@ -77,13 +73,22 @@ j. Cascade:
 - Hapus court dibatasi selama masih ada booking.
 - Hapus booking ikut menghapus review dan status history. Payment tidak ikut dihapus.
 
+k. Gateway: Midtrans.
+l. Default pembayaran venue: `allow_full_online = true`, `allow_dp = false`, `allow_onsite = false`, `dp_type = percent`, `dp_value = 30`.
+m. Booking bayar penuh di lokasi tanpa DP: status langsung `confirmed`, tanpa persetujuan admin.
+n. Autentikasi dan notifikasi:
+- Fase 1: login memakai **nomor HP + password** (nomor HP sebagai identitas login).
+- Email dipakai untuk **notifikasi** (konfirmasi booking, pengingat, dan pemberitahuan lain). Email tidak dipakai untuk login.
+- Tahap berikutnya (belum dikerjakan): **verifikasi OTP** yang dikirim ke WhatsApp setiap login. Provider belum dipilih (misalnya Fonnte atau Wablas).
+- Alasan: nomor HP lebih sulit dibuat asal-asalan daripada email, sehingga mendukung pemblokiran akun no-show.
+
 ## 5. Hal yang Belum Diputuskan (jangan diputuskan sendiri)
 1. Kebijakan pembatalan dan refund DP
 2. Biaya gateway: ditanggung venue atau customer
 3. Livewire atau Blade murni untuk halaman jadwal
 4. Format `payment_code`
 5. Bukti transfer, foto venue dan court, alasan pembatalan, jadwal khusus, fasilitas venue. Belum masuk database, jangan ditambahkan tanpa persetujuan.
-6. Login dengan nomor HP: keputusan belum final, apakah menggantikan email atau tambahan. Belum boleh dikerjakan, butuh keputusan.
+6. Provider OTP WhatsApp (Fonnte atau Wablas): belum dipilih, belum boleh dikerjakan di fase ini.
 7. Pemblokiran akun no-show: keputusan pemilik, sudah diterima tapi belum dirancang (butuh field dan aturan pemicu). Belum boleh dikerjakan.
 
 Jika ada keputusan dari pemilik project, pindahkan ke bagian 4 dan hapus dari daftar ini.
