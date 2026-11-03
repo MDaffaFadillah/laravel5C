@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CourtController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,7 @@ Route::middleware(['auth', 'role:admin'])
         })->name('dashboard');
 
         Route::resource('venues', VenueController::class)->except('show');
+        Route::resource('courts', CourtController::class)->except('show');
     });
 
 require __DIR__.'/auth.php';
