@@ -32,6 +32,21 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) {
+                    $normalized = User::normalizePhone($value);
+                    if (! preg_match('/^08\d{8,11}$/', $normalized)) {
+                        $fail('Format nomor HP tidak valid. Gunakan 08xxxxxxxxxx.');
+                        return;
+                    }
+                    if (User::where('phone', $normalized)->exists()) {
+                        $fail('Nomor HP sudah terdaftar.');
+                    }
+                },
+            ],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -39,6 +54,7 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'phone' => User::normalizePhone($request->phone),
             'password' => Hash::make($request->password),
         ]);
 
