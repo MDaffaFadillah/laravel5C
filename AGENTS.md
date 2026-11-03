@@ -41,6 +41,10 @@ b. `payments` adalah one-to-many terhadap `bookings`. Jangan pasang unique pada 
 - Kolom gateway: `gateway`, `gateway_order_id`, `gateway_transaction_id`, `gateway_payload` (JSON, jejak audit), `expired_at`
 - `payment_code` dibuat otomatis. Formatnya belum diputuskan.
 
+k. Gateway: Midtrans.
+l. Default pembayaran venue: `allow_full_online = true`, `allow_dp = false`, `allow_onsite = false`, `dp_type = percent`, `dp_value = 30`.
+m. Booking bayar penuh di lokasi tanpa DP: status langsung `confirmed`, tanpa persetujuan admin.
+
 c. Opsi pembayaran per booking: `bookings.payment_option` = `full_online`, `dp`, `onsite`.
 - Kolom turunan: `dp_amount`, `paid_amount`, `remaining_amount`.
 - Sumber kebenaran: `total_price` dikurangi total pembayaran berstatus `paid`.
@@ -74,14 +78,13 @@ j. Cascade:
 - Hapus booking ikut menghapus review dan status history. Payment tidak ikut dihapus.
 
 ## 5. Hal yang Belum Diputuskan (jangan diputuskan sendiri)
-1. Gateway: Midtrans atau Xendit
-2. Nilai DP default dan apakah bisa diubah per venue
-3. Booking bayar penuh di lokasi tanpa DP: langsung `confirmed` atau harus disetujui admin
-4. Kebijakan pembatalan dan refund DP
-5. Biaya gateway: ditanggung venue atau customer
-6. Livewire atau Blade murni untuk halaman jadwal
-7. Format `payment_code`
-8. Bukti transfer, foto venue dan court, alasan pembatalan, jadwal khusus, fasilitas venue. Belum masuk database, jangan ditambahkan tanpa persetujuan.
+1. Kebijakan pembatalan dan refund DP
+2. Biaya gateway: ditanggung venue atau customer
+3. Livewire atau Blade murni untuk halaman jadwal
+4. Format `payment_code`
+5. Bukti transfer, foto venue dan court, alasan pembatalan, jadwal khusus, fasilitas venue. Belum masuk database, jangan ditambahkan tanpa persetujuan.
+6. Login dengan nomor HP: keputusan belum final, apakah menggantikan email atau tambahan. Belum boleh dikerjakan, butuh keputusan.
+7. Pemblokiran akun no-show: keputusan pemilik, sudah diterima tapi belum dirancang (butuh field dan aturan pemicu). Belum boleh dikerjakan.
 
 Jika ada keputusan dari pemilik project, pindahkan ke bagian 4 dan hapus dari daftar ini.
 
