@@ -80,7 +80,6 @@ class PhoneAuthenticationTest extends TestCase
 
     public function test_login_with_correct_phone(): void
     {
-        $this->markTestSkipped('Untuk commit 2: login nomor HP');
         $user = User::factory()->create([
             'phone' => '081234567890',
             'password' => 'password',
@@ -97,7 +96,6 @@ class PhoneAuthenticationTest extends TestCase
 
     public function test_login_with_wrong_phone(): void
     {
-        $this->markTestSkipped('Untuk commit 2: login nomor HP');
         $response = $this->post('/login', [
             'phone' => '089999999999',
             'password' => 'password',
@@ -109,7 +107,6 @@ class PhoneAuthenticationTest extends TestCase
 
     public function test_login_with_wrong_password(): void
     {
-        $this->markTestSkipped('Untuk commit 2: login nomor HP');
         $user = User::factory()->create([
             'phone' => '081234567890',
             'password' => 'password',
