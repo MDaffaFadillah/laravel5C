@@ -15,6 +15,19 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('venues.index')" :active="request()->routeIs('venues.index')">
+                        {{ __('Daftar Venue') }}
+                    </x-nav-link>
+                    @auth
+                        @if (Auth::user()->role === 'admin')
+                            <x-nav-link :href="route('admin.venues.index')" :active="request()->routeIs('admin.venues.*')">
+                                {{ __('Kelola Venue') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('admin.courts.index')" :active="request()->routeIs('admin.courts.*')">
+                                {{ __('Kelola Lapangan') }}
+                            </x-nav-link>
+                        @endif
+                    @endauth
                 </div>
             </div>
 
@@ -74,6 +87,19 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('venues.index')" :active="request()->routeIs('venues.index')">
+                {{ __('Daftar Venue') }}
+            </x-responsive-nav-link>
+            @auth
+                @if (Auth::user()->role === 'admin')
+                    <x-responsive-nav-link :href="route('admin.venues.index')" :active="request()->routeIs('admin.venues.*')">
+                        {{ __('Kelola Venue') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.courts.index')" :active="request()->routeIs('admin.courts.*')">
+                        {{ __('Kelola Lapangan') }}
+                    </x-responsive-nav-link>
+                @endif
+            @endauth
         </div>
 
         <!-- Responsive Settings Options -->

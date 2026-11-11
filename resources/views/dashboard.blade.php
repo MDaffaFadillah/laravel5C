@@ -11,6 +11,15 @@
                 <div class="p-6 text-gray-900">
                     {{ __("You're logged in!") }}
                 </div>
+                <div class="p-6 border-t border-gray-100">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Mulai dari sini') }}</h3>
+                    <div class="flex gap-4">
+                        <a href="{{ route('venues.index') }}"
+                           class="px-6 py-3 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition">
+                            {{ __('Lihat Daftar Venue') }}
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

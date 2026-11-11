@@ -11,6 +11,19 @@
                 <div class="p-6 text-gray-900">
                     <p>Selamat datang di panel admin. Gunakan menu di atas untuk mengelola venue, lapangan, dan booking.</p>
                 </div>
+                <div class="p-6 border-t border-gray-100">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Aksi Cepat') }}</h3>
+                    <div class="flex gap-4">
+                        <a href="{{ route('admin.venues.index') }}"
+                           class="px-6 py-3 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition">
+                            {{ __('Kelola Venue') }}
+                        </a>
+                        <a href="{{ route('admin.courts.index') }}"
+                           class="px-6 py-3 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition">
+                            {{ __('Kelola Lapangan') }}
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
